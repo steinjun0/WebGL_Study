@@ -1,3 +1,52 @@
+const videoElement = document.getElementsByClassName("input_video")[0];
+const canvasElement = document.getElementsByClassName("output_canvas")[0];
+const canvasCtx = canvasElement.getContext("2d");
+
+let eyesCenterPos = { x: 0, y: 15, z: 20 };
+function onResults(results) {
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(
+    results.image,
+    0,
+    0,
+    canvasElement.width,
+    canvasElement.height
+  );
+  if (results.multiFaceLandmarks) {
+    for (const landmarks of results.multiFaceLandmarks) {
+      // landmarks 6번이 미간 포인트
+      eyesCenterPos = landmarks[6];
+      drawLandmarks(canvasCtx, [landmarks[6]], {
+        color: "#FF0000",
+        lineWidth: 2,
+      });
+    }
+  }
+  canvasCtx.restore();
+}
+
+const faceMesh = new FaceMesh({
+  locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+  },
+});
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5,
+});
+faceMesh.onResults(onResults);
+
+const webCam = new Camera(videoElement, {
+  onFrame: async () => {
+    await faceMesh.send({ image: videoElement });
+  },
+  width: 1280,
+  height: 720,
+});
+webCam.start();
+
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 // import { GLTFLoader } from "../../node_modules/three/examples/js/loaders/GLTFLoader.js";
@@ -15,7 +64,13 @@ const camera = new THREE.PerspectiveCamera(
   0.01, // near 절단면
   1000 // far 절단면
 );
-camera.position.set(0, 15, 20);
+// console.log(
+//   "eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z",
+//   eyesCenterPos.x,
+//   eyesCenterPos.y,
+//   eyesCenterPos.z
+// );
+camera.position.set(eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z);
 camera.lookAt(0, 10, 0);
 
 const material = new THREE.MeshPhongMaterial({ color: 0x00ffff });
@@ -24,9 +79,10 @@ points.push(new THREE.Vector3(-10, 0, 0));
 points.push(new THREE.Vector3(0, 10, 0));
 points.push(new THREE.Vector3(10, 0, 0));
 
-const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
 const boxMaterial = new THREE.MeshPhongMaterial({ color: 0x44aa88 });
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
+cube.position.set(0, 10, 0);
 scene.add(cube);
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -56,7 +112,7 @@ loader.load(
   "FinalBaseMesh.obj",
   // called when resource is loaded
   function (object) {
-    scene.add(object);
+    // scene.add(object);
     man = object;
     console.log("added");
   },
@@ -79,12 +135,22 @@ renderer.render(scene, camera);
 
 function render(time) {
   time *= 0.001; // convert time to seconds
-  console.log(man);
-  cube.rotation.x = time;
-  cube.rotation.y = time;
+  cube.rotation.x = 0.5;
+  cube.rotation.y = 0.5;
+  // console.log(
+  //   "eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z",
+  //   eyesCenterPos.x,
+  //   eyesCenterPos.y,
+  //   eyesCenterPos.z
+  // );
+  camera.position.set(
+    (0.5 - eyesCenterPos.x) * 20,
+    (0.5 - eyesCenterPos.y) * 20 + 15,
+    eyesCenterPos.z * 20 + 20
+  );
   try {
     // man.rotation.x = time;
-    man.rotation.y = time;
+    // man.rotation.y = time;
   } catch (error) {}
 
   renderer.render(scene, camera);
