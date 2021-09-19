@@ -52,9 +52,12 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 // import { GLTFLoader } from "../../node_modules/three/examples/js/loaders/GLTFLoader.js";
 // import { GLTFLoader } from "./GLTFLoader.js";
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+// console.log("renderer.domElement", renderer.domElement);
+// renderer.domElement.style.backgroundImage =
+//   "url('KakaoTalk_20210907_205812283.jpg'";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -71,7 +74,7 @@ const camera = new THREE.PerspectiveCamera(
 //   eyesCenterPos.z
 // );
 camera.position.set(eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z);
-camera.lookAt(0, 10, 0);
+camera.lookAt(0, 0, 0);
 
 const material = new THREE.MeshPhongMaterial({ color: 0x00ffff });
 const points = [];
@@ -79,11 +82,33 @@ points.push(new THREE.Vector3(-10, 0, 0));
 points.push(new THREE.Vector3(0, 10, 0));
 points.push(new THREE.Vector3(10, 0, 0));
 
-const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
 const boxMaterial = new THREE.MeshPhongMaterial({ color: 0x44aa88 });
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-cube.position.set(0, 10, 0);
+cube.position.set(0, 0, 0);
 scene.add(cube);
+
+const cylinderXGeometry = new THREE.CylinderGeometry(0.1, 0.1, 100, 32);
+const cylinderXMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const cylinderX = new THREE.Mesh(cylinderXGeometry, cylinderXMaterial);
+cylinderX.rotation.z = Math.PI / 2;
+cylinderX.position.set(0, 0, 0);
+scene.add(cylinderX);
+
+const cylinderYGeometry = new THREE.CylinderGeometry(0.1, 0.1, 100, 32);
+const cylinderYMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const cylinderY = new THREE.Mesh(cylinderYGeometry, cylinderYMaterial);
+cylinderY.rotation.x = Math.PI / 2;
+// cylinderY.position.set(0, 0, 0);
+scene.add(cylinderY);
+
+const cylinderZGeometry = new THREE.CylinderGeometry(0.1, 0.1, 100, 32);
+const cylinderZMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+const cylinderZ = new THREE.Mesh(cylinderZGeometry, cylinderZMaterial);
+// cylinderZ.rotation.x = 90;
+// cylinderZ.rotation.z = 90;
+cylinderX.position.set(0, 0, 0);
+scene.add(cylinderZ);
 
 const geometry = new THREE.BufferGeometry().setFromPoints(points);
 const line = new THREE.Line(geometry, material);
@@ -126,6 +151,25 @@ loader.load(
   }
 );
 
+loader.load(
+  // resource URL
+  "room.obj",
+  // called when resource is loaded
+  function (object) {
+    scene.add(object);
+    // man = object;
+    console.log("added");
+  },
+  // called when loading is in progresses
+  function (xhr) {
+    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+  },
+  // called when loading has errors
+  function (error) {
+    console.log("An error happened");
+  }
+);
+
 // loader.load(
 //   "FinalBaseMesh.obj",
 //   function (gltf) {
@@ -135,8 +179,8 @@ renderer.render(scene, camera);
 
 function render(time) {
   time *= 0.001; // convert time to seconds
-  cube.rotation.x = 0.5;
-  cube.rotation.y = 0.5;
+  cube.rotation.x = time;
+  cube.rotation.y = time;
   // console.log(
   //   "eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z",
   //   eyesCenterPos.x,
@@ -144,10 +188,11 @@ function render(time) {
   //   eyesCenterPos.z
   // );
   camera.position.set(
-    (0.5 - eyesCenterPos.x) * 20,
-    (0.5 - eyesCenterPos.y) * 20 + 15,
-    eyesCenterPos.z * 20 + 20
+    (0.5 - eyesCenterPos.x) * 10,
+    (0.5 - eyesCenterPos.y) * 20 + 10,
+    eyesCenterPos.z * 0 + 20
   );
+  // camera.position.set(10, 10, 10);
   try {
     // man.rotation.x = time;
     // man.rotation.y = time;
