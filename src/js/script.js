@@ -1,5 +1,9 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import FaceMesh from '@mediapipe/face_mesh'
+import Camera from '@mediapipe/camera_utils'
+import { drawConnectors } from '@mediapipe/drawing_utils'
+console.log('FaceMesh', FaceMesh)
 // import { GLTFLoader } from "../../node_modules/three/examples/js/loaders/GLTFLoader.js";
 // import { GLTFLoader } from "./GLTFLoader.js";
 
@@ -8,15 +12,15 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
+const PerspectiveCamera = new THREE.PerspectiveCamera(
   90, // 시야각 (FOV, Field Of View)
   window.innerWidth / window.innerHeight, // 종횡비
   // near, far 절단면은 렌더링 거리를 의미한다
   0.1, // near 절단면
   1000 // far 절단면
 );
-camera.position.set(0, 0, 20);
-camera.lookAt(0, 0, 0);
+PerspectiveCamera.position.set(0, 0, 20);
+PerspectiveCamera.lookAt(0, 0, 0);
 
 const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
 const points = [];
@@ -58,6 +62,9 @@ loader.load(
   }
 );
 
+
+renderer.render(scene, PerspectiveCamera);
+
 // loader.load(
 //   "FinalBaseMesh.obj",
 //   function (gltf) {
@@ -68,7 +75,70 @@ loader.load(
 //     console.error(error);
 //   }
 // );
-renderer.render(scene, camera);
+
+
+
+const videoElement = document.getElementsByClassName('input_video')[0];
+const canvasElement = document.getElementsByClassName('output_canvas')[0];
+const canvasCtx = canvasElement.getContext('2d');
+
+function onResults(results) {
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(
+    results.image, 0, 0, canvasElement.width, canvasElement.height);
+  if (results.multiFaceLandmarks) {
+    for (const landmarks of results.multiFaceLandmarks) {
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_TESSELATION,
+        { color: '#C0C0C070', lineWidth: 1 });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_RIGHT_EYE, { color: '#FF3030' });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_RIGHT_EYEBROW, { color: '#FF3030' });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_LEFT_EYE, { color: '#30FF30' });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_LEFT_EYEBROW, { color: '#30FF30' });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_FACE_OVAL, { color: '#E0E0E0' });
+      drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_LIPS, { color: '#E0E0E0' });
+    }
+  }
+  canvasCtx.restore();
+}
+
+// const faceMesh = new FaceMesh({
+//   locateFile: (file) => {
+//     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+//   }
+// });
+const faceMesh = new FaceMesh.FaceMesh()
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+faceMesh.onResults(onResults);
+
+const camera = new Camera.Camera(videoElement, {
+  onFrame: async () => {
+    await faceMesh.send({ image: videoElement });
+  },
+  width: 1280,
+  height: 720
+});
+camera.start();
+
+async function getMedia(constraints) {
+  let stream = null;
+
+  try {
+    console.log('navigator', navigator)
+    console.log('navigator.mediaDevices', navigator.mediaDevices)
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    /* 스트림 사용 */
+  } catch (err) {
+    console.error(err)
+    /* 오류 처리 */
+  }
+}
+
+getMedia({ audio: true, video: true })
 
 // const animate = function () {
 //   // setInterval을 사용해도 가능하다.
