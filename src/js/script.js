@@ -80,7 +80,22 @@ renderer.render(scene, PerspectiveCamera);
 
 const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
+console.log(canvasElement.style)
+console.log(canvasElement.style.width)
+const pixelRatio = window.devicePixelRatio
+
+canvasElement.style.width = '1280px'
+canvasElement.width = 1280 * pixelRatio
+canvasElement.style.height = '720px'
+canvasElement.height = 720 * pixelRatio
+console.log(canvasElement.style.width)
+
 const canvasCtx = canvasElement.getContext('2d');
+// canvasElement.style.width = canvasElement.width * pixelRatio + 'px'
+// canvasElement.style.height = canvasElement.height * pixelRatio + 'px'
+console.log('pixelRatio', pixelRatio)
+console.log('canvasElement.width', canvasElement.width)
+console.log('canvasElement.width * pixelRatio', canvasElement.width * pixelRatio)
 
 function onResults(results) {
   canvasCtx.save();
@@ -110,8 +125,8 @@ function onResults(results) {
 const faceMesh = new FaceMesh.FaceMesh()
 faceMesh.setOptions({
   maxNumFaces: 1,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5
+  minDetectionConfidence: 0.2,
+  minTrackingConfidence: 0.2
 });
 faceMesh.onResults(onResults);
 
@@ -124,21 +139,6 @@ const camera = new Camera.Camera(videoElement, {
 });
 camera.start();
 
-async function getMedia(constraints) {
-  let stream = null;
-
-  try {
-    console.log('navigator', navigator)
-    console.log('navigator.mediaDevices', navigator.mediaDevices)
-    stream = await navigator.mediaDevices.getUserMedia(constraints);
-    /* 스트림 사용 */
-  } catch (err) {
-    console.error(err)
-    /* 오류 처리 */
-  }
-}
-
-getMedia({ audio: true, video: true })
 
 // const animate = function () {
 //   // setInterval을 사용해도 가능하다.
