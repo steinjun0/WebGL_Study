@@ -1,28 +1,99 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>My first three.js app</title>
+    <style>
+      body {
+        margin: 0;
+      }
 
-<head>
-  <meta charset="utf-8" />
-  <title>My first three.js app</title>
-  <style>
-    body {
-      margin: 0;
-    }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
 
-    canvas {
-      display: block;
-    }
-  </style>
-</head>
-
-<body>
-  <div style="z-index: 100">hello</div>
-  <img src="./KakaoTalk_20210806_145703568.jpg" alt="" style="width: 100px" />
-  <video class="input_video"></video>
-  <canvas class="output_canvas"></canvas>
-  <!-- <script src="js/three.js"></script> -->
-  <script type="module" src="./main.js"></script>
-  <!-- <script>
+  <body>
+    <div style="z-index: 100">hello</div>
+    <img src="./KakaoTalk_20210806_145703568.jpg" alt="" style="width: 100px" />
+    <video class="input_video"></video>
+    <canvas class="output_canvas"></canvas>
+    <!-- <script src="js/three.js"></script> -->
+    <script type="module" src="./main.js"></script>
+    <div class="slidecontainer">
+      <span>Position X</span>
+      <input
+        type="range"
+        min="-100"
+        max="100"
+        value="0"
+        class="slider"
+        id="xOffset"
+      />
+      <span id="xOffsetDisplay"></span>
+    </div>
+    <div class="slidecontainer">
+      <span>Position Y</span>
+      <input
+        type="range"
+        min="-100"
+        max="100"
+        value="20"
+        class="slider"
+        id="yOffset"
+      />
+      <span id="yOffsetDisplay"></span>
+    </div>
+    <div class="slidecontainer">
+      <span>Position Z</span>
+      <input
+        type="range"
+        min="-100"
+        max="100"
+        value="20"
+        class="slider"
+        id="zOffset"
+      />
+      <span id="zOffsetDisplay"></span>
+    </div>
+    <div class="slidecontainer">
+      <span>Sensitive X</span>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value="5"
+        class="slider"
+        id="xSens"
+      />
+      <span id="xSensDisplay"></span>
+    </div>
+    <div class="slidecontainer">
+      <span>Sensitive Y</span>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value="5"
+        class="slider"
+        id="ySens"
+      />
+      <span id="ySensDisplay"></span>
+    </div>
+    <div class="slidecontainer">
+      <span>Sensitive Z</span>
+      <input
+        type="range"
+        min="0"
+        max="500"
+        value="20"
+        class="slider"
+        id="zSens"
+      />
+      <span id="zSensDisplay"></span>
+    </div>
+    <!-- <script>
 			const scene = new THREE.Scene();
 			const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -48,6 +119,11 @@
 
 			animate();
 		</script> -->
-</body>
-
+  </body>
 </html>
+
+<style>
+  .slidecontainer input {
+    width: 500px;
+  }
+</style>

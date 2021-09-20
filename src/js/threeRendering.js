@@ -1,16 +1,7 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
-import { videoElement, canvasElement } from "./facemesh";
-import FaceMesh from "@mediapipe/face_mesh";
-import Camera from "@mediapipe/camera_utils";
-
-const faceMesh = new FaceMesh.FaceMesh();
-faceMesh.setOptions({
-  maxNumFaces: 1,
-  minDetectionConfidence: 0.2,
-  minTrackingConfidence: 0.2,
-});
+import { getEyePos } from "./facemesh";
 
 let eyesCenterPos = { x: 0, y: 15, z: 20 };
 function onResults(results) {
@@ -20,14 +11,8 @@ function onResults(results) {
     }
   }
 }
-faceMesh.onResults(onResults);
 
-const webcam = new Camera.Camera(videoElement, {
-  onFrame: async () => {
-    await faceMesh.send({ image: videoElement });
-  },
-});
-webcam.start();
+getEyePos(onResults);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -41,8 +26,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1, // near 절단면
   1000 // far 절단면
 );
-// camera.position.set(eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z);
-camera.position.set(5, 5, 5);
+camera.position.set(eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z);
 camera.lookAt(0, 0, 0);
 
 function getLines() {
@@ -155,21 +139,45 @@ manPromise
 
 renderer.render(scene, camera);
 
+let xOffset,
+  yOffset,
+  zOffset = [0, 20, 20];
+let xSens,
+  ySens,
+  zSens = [5, 5, 200];
+
+let xOffsetDisplay = document.getElementById("xOffsetDisplay");
+let yOffsetDisplay = document.getElementById("yOffsetDisplay");
+let zOffsetDisplay = document.getElementById("zOffsetDisplay");
+let xSensDisplay = document.getElementById("xSensDisplay");
+let ySensDisplay = document.getElementById("ySensDisplay");
+let zSensDisplay = document.getElementById("zSensDisplay");
+
 function render(time) {
   time *= 0.001; // convert time to seconds
   cube.rotation.x = 0;
   cube.rotation.y = 0;
-  // console.log(
-  //   "eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z",
-  //   eyesCenterPos.x,
-  //   eyesCenterPos.y,
-  //   eyesCenterPos.z
-  // );
-  // camera.position.set(
-  //   (0.5 - eyesCenterPos.x) * 5,
-  //   (0.5 - eyesCenterPos.y) * 5 + 20,
-  //   eyesCenterPos.z * 200 + 20
-  // );
+
+  xOffset = Number(document.getElementById("xOffset").value);
+  yOffset = Number(document.getElementById("yOffset").value);
+  zOffset = Number(document.getElementById("zOffset").value);
+
+  xSens = Number(document.getElementById("xSens").value);
+  ySens = Number(document.getElementById("ySens").value);
+  zSens = Number(document.getElementById("zSens").value);
+
+  xOffsetDisplay.innerHTML = xOffset;
+  yOffsetDisplay.innerHTML = yOffset;
+  zOffsetDisplay.innerHTML = zOffset;
+  xSensDisplay.innerHTML = xSens;
+  ySensDisplay.innerHTML = ySens;
+  zSensDisplay.innerHTML = zSens;
+  camera.position.set(
+    (0.5 - eyesCenterPos.x) * xSens + xOffset,
+    (0.5 - eyesCenterPos.y) * ySens + yOffset,
+    eyesCenterPos.z * zSens + zOffset
+  );
+
   // camera.position.set(10, 10, 10);
   try {
     // man.rotation.x = time;
