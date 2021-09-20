@@ -179,8 +179,8 @@ renderer.render(scene, camera);
 
 function render(time) {
   time *= 0.001; // convert time to seconds
-  cube.rotation.x = time;
-  cube.rotation.y = time;
+  cube.rotation.x = 0;
+  cube.rotation.y = 0;
   // console.log(
   //   "eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z",
   //   eyesCenterPos.x,
@@ -188,9 +188,9 @@ function render(time) {
   //   eyesCenterPos.z
   // );
   camera.position.set(
-    (0.5 - eyesCenterPos.x) * 10,
-    (0.5 - eyesCenterPos.y) * 20 + 10,
-    eyesCenterPos.z * 0 + 20
+    (0.5 - eyesCenterPos.x) * 5,
+    (0.5 - eyesCenterPos.y) * 5 + 20,
+    eyesCenterPos.z * 200 + 20
   );
   // camera.position.set(10, 10, 10);
   try {
