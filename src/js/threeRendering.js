@@ -1,6 +1,33 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { videoElement, canvasElement } from "./facemesh";
+import FaceMesh from "@mediapipe/face_mesh";
+import Camera from "@mediapipe/camera_utils";
+
+const faceMesh = new FaceMesh.FaceMesh();
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  minDetectionConfidence: 0.2,
+  minTrackingConfidence: 0.2,
+});
+
+let eyesCenterPos = { x: 0, y: 15, z: 20 };
+function onResults(results) {
+  if (results.multiFaceLandmarks) {
+    for (const landmarks of results.multiFaceLandmarks) {
+      eyesCenterPos = landmarks[6];
+    }
+  }
+}
+faceMesh.onResults(onResults);
+
+const webcam = new Camera.Camera(videoElement, {
+  onFrame: async () => {
+    await faceMesh.send({ image: videoElement });
+  },
+});
+webcam.start();
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -18,7 +45,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-function getLines(){
+function getLines() {
   const material = new THREE.MeshPhongMaterial({ color: 0x00ffff });
   const points = [];
   points.push(new THREE.Vector3(-10, 0, 0));
@@ -26,18 +53,18 @@ function getLines(){
   points.push(new THREE.Vector3(10, 0, 0));
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const line = new THREE.Line(geometry, material);
-  return line
+  return line;
 }
 
-function getBox(width, height, depth, x, y, z, color=0x44aa88){
+function getBox(width, height, depth, x, y, z, color = 0x44aa88) {
   const boxGeometry = new THREE.BoxGeometry(width, height, depth);
   const boxMaterial = new THREE.MeshPhongMaterial({ color: color });
   const cube = new THREE.Mesh(boxGeometry, boxMaterial);
   cube.position.set(x, y, z);
-  return cube
+  return cube;
 }
 
-function getXYZBias(){
+function getXYZBias() {
   const cylinderXGeometry = new THREE.CylinderGeometry(0.1, 0.1, 100, 32);
   const cylinderXMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
   const cylinderX = new THREE.Mesh(cylinderXGeometry, cylinderXMaterial);
@@ -55,21 +82,17 @@ function getXYZBias(){
   const cylinderZ = new THREE.Mesh(cylinderZGeometry, cylinderZMaterial);
   // cylinderZ.rotation.x = 90;
   // cylinderZ.rotation.z = 90;
-  return [cylinderX, cylinderY, cylinderZ]
+  return [cylinderX, cylinderY, cylinderZ];
 }
 
-const cube = getBox(3,3,3, 0,0,0)
-const [cylinderX, cylinderY, cylinderZ] = getXYZBias()
+const cube = getBox(3, 3, 3, 0, 0, 0);
+const [cylinderX, cylinderY, cylinderZ] = getXYZBias();
 
 scene.add(cube);
 
 scene.add(cylinderX);
 scene.add(cylinderY);
 scene.add(cylinderZ);
-
-
-
-const loader = new OBJLoader();
 
 const color = 0xffffff;
 const intensity = 1;
@@ -78,64 +101,57 @@ const light = new THREE.DirectionalLight(color, intensity);
 light.position.set(-1, 2, 4);
 scene.add(light);
 
-
-function getLoadOBJPromise(loader, filename){
-  let promise = new Promise(
-    function(resolve, reject){
-      loader.load(
-        // resource URL
-        filename,
-        // called when resource is loaded
-        function (object) {
-          // scene.add(object);
-          // objectRes = object;
-          resolve(object)
-        },
-        // called when loading is in progresses
-        function (xhr) {
-          console.log(filename + ":" + (xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-        // called when loading has errors
-        function (error) {
-          console.log("An error happened");
-          reject(error)
-        }
-      );
-    }
-  )
-  return promise
+const loader = new OBJLoader();
+function getLoadOBJPromise(loader, filename) {
+  let promise = new Promise(function (resolve, reject) {
+    loader.load(
+      // resource URL
+      filename,
+      // called when resource is loaded
+      function (object) {
+        // scene.add(object);
+        // objectRes = object;
+        resolve(object);
+      },
+      // called when loading is in progresses
+      function (xhr) {
+        console.log(
+          filename + ":" + (xhr.loaded / xhr.total) * 100 + "% loaded"
+        );
+      },
+      // called when loading has errors
+      function (error) {
+        console.log("An error happened");
+        reject(error);
+      }
+    );
+  });
+  return promise;
 }
 
-let room
-let roomPromise = getLoadOBJPromise(loader, "room.obj")
-roomPromise.then(
-  function(objectRes){
-    room = objectRes
-    scene.add(objectRes)
-  }
-)
-.catch(
-  function(error){
-    console.log(error)
-  }
-)
+let room;
+let roomPromise = getLoadOBJPromise(loader, "room.obj");
+roomPromise
+  .then(function (objectRes) {
+    room = objectRes;
+    scene.add(objectRes);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 
-let man
-let manPromise = getLoadOBJPromise(loader, "FinalBaseMesh.obj")
-manPromise.then(
-  function(objectRes){
-    man = objectRes
-    console.log('man',man)
-    man.position.set(-5, -5, -5)
-    scene.add(objectRes)
-  }
-)
-.catch(
-  function(error){
-    console.log(error)
-  }
-)
-
+let man;
+let manPromise = getLoadOBJPromise(loader, "FinalBaseMesh.obj");
+manPromise
+  .then(function (objectRes) {
+    man = objectRes;
+    console.log("man", man);
+    man.position.set(-5, -5, -5);
+    scene.add(objectRes);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 
 renderer.render(scene, camera);
 
@@ -165,5 +181,3 @@ function render(time) {
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
-
-
