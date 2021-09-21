@@ -200,22 +200,22 @@ window.onkeyup = (e) => {
   keys = (keys || [])
   keys[e.keyCode] = true;
   console.log(e.key)
-  if (e.key === 'w') {
+  if (e.code === 'KeyW') {
     keys[87] = false
   }
-  if (e.key === 'a') {
+  if (e.code === 'KeyA') {
     keys[65] = false
   }
-  if (e.key === 's') {
+  if (e.code === 'KeyS') {
     keys[83] = false
   }
-  if (e.key === 'd') {
+  if (e.code === 'KeyD') {
     keys[68] = false
   }
-  if (e.key === ' ') {
+  if (e.code === 'Space') {
     keys[32] = false
   }
-  if (e.key === 'c') {
+  if (e.code === 'KeyC') {
     keys[67] = false
   }
 }
