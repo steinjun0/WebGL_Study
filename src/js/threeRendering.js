@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+// import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import { getEyePos } from "./facemesh";
 
 // 눈 위치 받아오기
@@ -219,6 +220,9 @@ window.onkeyup = (e) => {
     keys[67] = false
   }
 }
+
+
+
 
 function render(time) {
   currentPosX = currentPosX + (posX - currentPosX) * 0.5
