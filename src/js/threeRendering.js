@@ -3,21 +3,23 @@ import { Vector3 } from "three";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { getEyePos } from "./facemesh";
 
-let eyesCenterPos = { x: 0, y: 15, z: 20 };
+// 눈 위치 받아오기
+let eyesCenterPos = { x: 0, y: 15, z: 20 }; // 최초 카메라 위치 설정
 function onResults(results) {
   if (results.multiFaceLandmarks) {
     for (const landmarks of results.multiFaceLandmarks) {
-      eyesCenterPos = landmarks[6];
+      eyesCenterPos = landmarks[6]; // 눈 중앙 landmark
     }
   }
 }
+getEyePos(onResults); // onResult가 프레임별로 실행됨
 
-getEyePos(onResults);
-
+// three.js 세팅
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// 카메라 세팅
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   90, // 시야각 (FOV, Field Of View)
@@ -29,6 +31,8 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(eyesCenterPos.x, eyesCenterPos.y, eyesCenterPos.z);
 camera.lookAt(0, 0, 0);
 
+
+// scene에 도형들 추가
 function getLines() {
   const material = new THREE.MeshPhongMaterial({ color: 0x00ffff });
   const points = [];
@@ -78,13 +82,7 @@ scene.add(cylinderX);
 scene.add(cylinderY);
 scene.add(cylinderZ);
 
-const color = 0xffffff;
-const intensity = 1;
-// const light = new THREE.AmbientLight(color, intensity);
-const light = new THREE.DirectionalLight(color, intensity);
-light.position.set(-1, 2, 4);
-scene.add(light);
-
+// 객체 로더 선언(Promise)
 const loader = new OBJLoader();
 function getLoadOBJPromise(loader, filename) {
   let promise = new Promise(function (resolve, reject) {
@@ -113,6 +111,7 @@ function getLoadOBJPromise(loader, filename) {
   return promise;
 }
 
+// 객체 로딩 후 scene 추가
 let room;
 let roomPromise = getLoadOBJPromise(loader, "room.obj");
 roomPromise
@@ -137,8 +136,18 @@ manPromise
     console.log(error);
   });
 
+// 조명 설정
+const color = 0xffffff;
+const intensity = 1;
+// const light = new THREE.AmbientLight(color, intensity);
+const light = new THREE.DirectionalLight(color, intensity);
+light.position.set(-1, 2, 4);
+scene.add(light);
+
+// 렌더링
 renderer.render(scene, camera);
 
+// 카메라 위치를 조절하기 위한 slider들 정보
 let xOffset,
   yOffset,
   zOffset = [0, 20, 20];
@@ -153,7 +162,69 @@ let xSensDisplay = document.getElementById("xSensDisplay");
 let ySensDisplay = document.getElementById("ySensDisplay");
 let zSensDisplay = document.getElementById("zSensDisplay");
 
+let posX = 0
+let posY = 0
+let posZ = 0
+let currentPosX = posX
+let currentPosY = posY
+let currentPosZ = posZ
+
+let keys = []
+window.onkeydown = (e) => {
+  keys = (keys || [])
+  keys[e.keyCode] = true;
+  console.log(e.key)
+  console.log(e)
+  console.log(keys)
+  if (keys[87]) {
+    posZ -= 1
+  }
+  if (keys[65]) {
+    posX -= 1
+  }
+  if (keys[83]) {
+    posZ += 1
+  }
+  if (keys[68]) {
+    posX += 1
+  }
+  if (keys[32]) {
+    posY += 1
+  }
+  if (keys[67]) {
+    posY -= 1
+  }
+}
+
+window.onkeyup = (e) => {
+  keys = (keys || [])
+  keys[e.keyCode] = true;
+  console.log(e.key)
+  if (e.key === 'w') {
+    keys[87] = false
+  }
+  if (e.key === 'a') {
+    keys[65] = false
+  }
+  if (e.key === 's') {
+    keys[83] = false
+  }
+  if (e.key === 'd') {
+    keys[68] = false
+  }
+  if (e.key === ' ') {
+    keys[32] = false
+  }
+  if (e.key === 'c') {
+    keys[67] = false
+  }
+}
+
 function render(time) {
+  currentPosX = currentPosX + (posX - currentPosX) * 0.5
+  currentPosY = currentPosY + (posY - currentPosY) * 0.5
+  currentPosZ = currentPosZ + (posZ - currentPosZ) * 0.5
+
   time *= 0.001; // convert time to seconds
   cube.rotation.x = 0;
   cube.rotation.y = 0;
@@ -172,17 +243,18 @@ function render(time) {
   xSensDisplay.innerHTML = xSens;
   ySensDisplay.innerHTML = ySens;
   zSensDisplay.innerHTML = zSens;
+
   camera.position.set(
-    (0.5 - eyesCenterPos.x) * xSens + xOffset,
-    (0.5 - eyesCenterPos.y) * ySens + yOffset,
-    eyesCenterPos.z * zSens + zOffset
+    (0.5 - eyesCenterPos.x) * xSens + xOffset + currentPosX,
+    (0.5 - eyesCenterPos.y) * ySens + yOffset + currentPosY,
+    eyesCenterPos.z * zSens + zOffset + currentPosZ
   );
 
   // camera.position.set(10, 10, 10);
   try {
     // man.rotation.x = time;
     // man.rotation.y = time;
-  } catch (error) {}
+  } catch (error) { }
 
   renderer.render(scene, camera);
 
